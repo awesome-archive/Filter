@@ -1,0 +1,163 @@
+def baseUrl = 'http://www.mp4ba.com'
+def builder
+
+task('build') {
+    connection {
+        url baseUrl
+        page {
+            document {
+                catalog {
+                    builder = { _href ->
+                        return {
+                            url _href
+
+                            def current, next
+
+                            def parser = { page ->
+                                def items = select('#data_list tr')
+                                items.each {
+                                    def title = it.select('td').get(2).text().trim()
+                                    def href = it.select('td').get(2).select('a').attr('abs:href')
+                                    def publish = it.select('td').get(3).text()
+                                    def author = it.select('td').get(0).text()
+
+                                    page.data(
+                                            'type': 'post',
+                                            'id': title,
+                                            'title': title,
+                                            'href': href,
+                                            'publish': publish,
+                                            'author': author
+                                    )
+                                }
+
+                                next = select('div.pages a.pagelink_a:matches(下一页)').attr('abs:href')
+                            }
+
+                            task('refresh') {
+                                def result
+
+                                current = _href
+
+                                connection {
+                                    url current
+                                    result = page {
+                                        document parser
+                                    }
+                                }
+
+                                return result
+                            }
+
+                            task('loadMore') {
+                                def result
+
+                                current = next
+
+                                connection {
+                                    url current
+                                    result = page {
+                                        document parser
+                                    }
+                                }
+
+                                return result
+                            }
+
+                            task('hasMore') {
+                                return next && !next.allWhitespace
+                            }
+
+                            task('page') { href ->
+                                return connection {
+                                    url href
+
+                                    task('refresh') {
+                                        def result
+
+                                        connection {
+                                            url href
+                                            result = page {
+                                                document { page ->
+                                                    def details = [:]
+                                                    select('.intro tbody tr').each {
+                                                        def k = it.select('td').get(0).text()
+                                                        def v = [:]
+                                                        it.select('td').get(1).select('a').each {
+                                                            def t = it.text()
+                                                            if (t.length() > 0) {
+                                                                def build = builder(it.attr('abs:href'))
+                                                                def c = connection build
+                                                                v[t] = c
+                                                            }
+                                                        }
+                                                        if (k == "制片地区") {
+                                                            k = "地区"
+                                                        }
+                                                        if (v.size() != 0) {
+                                                            details[k] = v
+                                                        }
+                                                    }
+
+                                                    def cover = select('.intro .img-thumbnail').attr('src')
+                                                    if (cover.indexOf('http') == -1) {
+                                                        cover = "$baseUrl$cover".toString()
+                                                    }
+                                                    def description = ''
+                                                    def spans = select('.intro p')
+                                                    def i = 0
+                                                    while (description.length() < 10 && i < spans.size()) {
+                                                        description = spans[i].text()
+                                                        i++
+                                                    }
+                                                    page.data(
+                                                            "cover": cover,
+                                                            "details": details,
+                                                            "description": description
+                                                    )
+                                                    select('.intro p img').each {
+                                                        def thumbnail = it.attr('src')
+                                                        if (thumbnail.indexOf('http') == -1) {
+                                                            thumbnail = "$baseUrl$thumbnail".toString()
+                                                        }
+                                                        page.data(
+                                                                "cover": cover,
+                                                                "thumbnail": thumbnail
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        return result
+                                    }
+
+                                    task('loadMore') {
+                                        return null
+                                    }
+
+                                    task('hasMore') {
+                                        return false
+                                    }
+
+                                    task('entrance') {
+                                        return _href.toString()
+                                    }
+
+                                    task('layout') {
+                                        return 'detail'
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    def list = select('div.nav ul li a')
+                    list.each {
+                        connection(it.text(), builder(it.attr('abs:href')))
+                    }
+                }
+            }
+        }
+    }
+}

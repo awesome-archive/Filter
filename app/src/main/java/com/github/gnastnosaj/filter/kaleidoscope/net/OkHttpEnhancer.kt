@@ -3,15 +3,46 @@ package com.github.gnastnosaj.filter.kaleidoscope.net
 import android.text.TextUtils
 import com.github.gnastnosaj.boilerplate.Boilerplate
 import com.github.gnastnosaj.filter.magneto.util.NetworkUtil
-import okhttp3.Cache
-import okhttp3.OkHttpClient
+import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.logging.HttpLoggingInterceptor.Level
 import java.io.File
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.X509TrustManager
 
 object OkHttpEnhancer {
     private const val MAX_STALE = 30
     private const val MAX_AGE = 60 * 60
+
+    private val trustManager = object : X509TrustManager {
+        override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {
+
+        }
+
+        override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {
+
+        }
+
+        override fun getAcceptedIssuers(): Array<X509Certificate> {
+            return arrayOf()
+        }
+    }
+
+//    private val cookieStore = HashMap<String, List<Cookie>>()
+//
+//    val cookieJar = object : CookieJar {
+//        override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+//            Timber.d("saveFromResponse url: $url, cookies: $cookies")
+//            cookieStore[url.host()] = cookies
+//        }
+//
+//        override fun loadForRequest(url: HttpUrl): List<Cookie> {
+//            val cookies = cookieStore[url.host()] ?: emptyList()
+//            Timber.d("loadForRequest url: $url, cookies: $cookies")
+//            return cookies
+//        }
+//    }
 
     fun OkHttpClient.Builder.enhance() {
         if (Boilerplate.DEBUG) {
@@ -41,5 +72,10 @@ object OkHttpEnhancer {
             }
             chain.proceed(request)
         }
+        hostnameVerifier { _, _ -> true }
+        val sc = SSLContext.getInstance("TLS")
+        sc.init(null, arrayOf(trustManager), null)
+        sslSocketFactory(sc.socketFactory, trustManager)
+        //cookieJar(cookieJar)
     }
 }

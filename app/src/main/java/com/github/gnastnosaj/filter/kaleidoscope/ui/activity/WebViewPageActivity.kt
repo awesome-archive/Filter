@@ -20,7 +20,7 @@ import android.webkit.*
 import android.widget.FrameLayout
 import com.github.gnastnosaj.boilerplate.Boilerplate
 import com.github.gnastnosaj.boilerplate.rxbus.RxHelper
-import com.github.gnastnosaj.boilerplate.util.keyboard.BaseActivity
+import com.github.gnastnosaj.boilerplate.ui.activity.BaseActivity
 import com.github.gnastnosaj.filter.dsl.core.Connection
 import com.github.gnastnosaj.filter.kaleidoscope.Kaleidoscope
 import com.github.gnastnosaj.filter.kaleidoscope.R
@@ -384,7 +384,7 @@ class WebViewPageActivity : BaseActivity() {
         }
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (agentWeb?.handleKeyEvent(keyCode, event) == true) {
             return true
         }

@@ -17,7 +17,7 @@ import android.view.*
 import android.widget.ListView
 import br.com.mauker.materialsearchview.MaterialSearchView
 import com.github.gnastnosaj.boilerplate.Boilerplate
-import com.github.gnastnosaj.boilerplate.ui.activity.BaseActivity
+import com.github.gnastnosaj.boilerplate.util.keyboard.BaseActivity
 import com.github.gnastnosaj.filter.kaleidoscope.R
 import com.github.gnastnosaj.filter.kaleidoscope.api.datasource.MagnetoDataSource
 import com.github.gnastnosaj.filter.kaleidoscope.ui.adapter.MagnetoAdapter
@@ -33,7 +33,6 @@ import org.jetbrains.anko.design.coordinatorLayout
 import org.jetbrains.anko.design.themedAppBarLayout
 import org.jetbrains.anko.recyclerview.v7.recyclerView
 import org.jetbrains.anko.support.v4.swipeRefreshLayout
-
 
 class MagnetoActivity : BaseActivity() {
     private var searchView: MaterialSearchView? = null
@@ -70,10 +69,10 @@ class MagnetoActivity : BaseActivity() {
                             addItemDecoration(HorizontalDividerItemDecoration.Builder(context).size(1).build())
 
                             val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-                                override fun onLongPress(e: MotionEvent?) {
+                                override fun onLongPress(e: MotionEvent) {
                                     super.onLongPress(e)
-                                    e?.let { event ->
-                                        val childView = findChildViewUnder(event.x, event.y)
+                                    val childView = findChildViewUnder(e.x, e.y)
+                                    childView?.let {
                                         val position = getChildAdapterPosition(childView)
                                         if (-1 < position && position < magnetoAdapter.data.size) {
                                             val data = magnetoAdapter.data[position]
@@ -85,15 +84,15 @@ class MagnetoActivity : BaseActivity() {
                                     }
                                 }
 
-                                override fun onSingleTapUp(e: MotionEvent?): Boolean {
+                                override fun onSingleTapUp(e: MotionEvent): Boolean {
                                     return true
                                 }
                             })
                             addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
-                                override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
+                                override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                                     return if (gestureDetector.onTouchEvent(e)) {
-                                        e?.let { event ->
-                                            val childView = findChildViewUnder(event.x, event.y)
+                                        val childView = findChildViewUnder(e.x, e.y)
+                                        childView?.let {
                                             val position = getChildAdapterPosition(childView)
                                             if (-1 < position && position < magnetoAdapter.data.size) {
                                                 val data = magnetoAdapter.data[position]

@@ -2,6 +2,7 @@ package com.github.gnastnosaj.filter.kaleidoscope.ui.adapter
 
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import com.github.gnastnosaj.filter.kaleidoscope.ui.viewbinder.HeadViewBinder
 import com.github.gnastnosaj.filter.kaleidoscope.ui.viewbinder.PostViewBinder
@@ -21,7 +22,7 @@ class WaterfallAdapter : MultiTypeAdapter(), IDataAdapter<List<Map<String, Strin
                 } else {
                     object : ItemViewBinder<Any, RecyclerView.ViewHolder>() {
                         override fun onCreateViewHolder(inflater: LayoutInflater, parent: ViewGroup): RecyclerView.ViewHolder {
-                            return object : RecyclerView.ViewHolder(null) {}
+                            return object : RecyclerView.ViewHolder(View(parent.context)) {}
                         }
 
                         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: Any) {

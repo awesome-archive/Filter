@@ -30,7 +30,6 @@ import org.jetbrains.anko.recyclerview.v7.recyclerView
 import org.jetbrains.anko.support.v4.swipeRefreshLayout
 import org.jetbrains.anko.wrapContent
 
-
 class StarActivity : BaseActivity() {
     private var plugin: Plugin? = null
     private var catalog: Catalog? = null
@@ -73,15 +72,15 @@ class StarActivity : BaseActivity() {
                             layoutManager = staggeredGridLayoutManager
 
                             val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-                                override fun onSingleTapUp(e: MotionEvent?): Boolean {
+                                override fun onSingleTapUp(e: MotionEvent): Boolean {
                                     return true
                                 }
                             })
                             addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
-                                override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
+                                override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                                     return if (gestureDetector.onTouchEvent(e)) {
-                                        e?.let { event ->
-                                            val childView = findChildViewUnder(event.x, event.y)
+                                        val childView = findChildViewUnder(e.x, e.y)
+                                        childView?.let {
                                             val position = getChildAdapterPosition(childView)
                                             if (-1 < position && position < waterfallAdapter.data.size) {
                                                 val data = waterfallAdapter.data[position]

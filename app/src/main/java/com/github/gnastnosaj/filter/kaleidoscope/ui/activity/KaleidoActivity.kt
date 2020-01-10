@@ -48,9 +48,11 @@ import com.yalantis.contextmenu.lib.MenuObject
 import com.yalantis.contextmenu.lib.MenuParams
 import ezy.boost.update.UpdateInfo
 import ezy.boost.update.UpdateManager
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
+import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import okhttp3.Request
 import org.jetbrains.anko.*
@@ -476,34 +478,40 @@ class KaleidoActivity : BaseActivity() {
                                     pluginDisposable = start(plugins[i]).subscribe()
                                 }
 
-                                val kaleido = findViewById<View>(R.id.action_kaleido)
-                                kaleido.setOnLongClickListener {
-                                    if (crazy) {
-                                        crazy = false
-                                        createContextMenu()
-                                        PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("crazy", crazy).apply()
-                                        Snackbar.make(findViewById(android.R.id.content), R.string.normal_mode, Snackbar.LENGTH_SHORT).show()
-                                        true
-                                    } else {
-                                        false
-                                    }
-                                }
-                                val tapTarget = TapTarget
-                                        .forView(kaleido, resources.getString(R.string.filter), resources.getString(R.string.filter_description))
-                                        .outerCircleAlpha(0.8f)
-                                TapTargetView.showFor(this, tapTarget, object : TapTargetView.Listener() {
-                                    override fun onTargetClick(view: TapTargetView) {
-                                        view.dismiss(true)
-                                        if (fragmentManager.findFragmentByTag(ContextMenuDialogFragment.TAG) == null) {
-                                            contextMenuDialogFragment?.show(supportFragmentManager, ContextMenuDialogFragment.TAG)
+                                Completable
+                                        .fromRunnable {
+                                            val kaleido = findViewById<View>(R.id.action_kaleido)
+                                            kaleido.setOnLongClickListener {
+                                                if (crazy) {
+                                                    crazy = false
+                                                    createContextMenu()
+                                                    PreferenceManager.getDefaultSharedPreferences(this).edit().putBoolean("crazy", crazy).apply()
+                                                    Snackbar.make(findViewById(android.R.id.content), R.string.normal_mode, Snackbar.LENGTH_SHORT).show()
+                                                    true
+                                                } else {
+                                                    false
+                                                }
+                                            }
+                                            val tapTarget = TapTarget
+                                                    .forView(kaleido, resources.getString(R.string.filter), resources.getString(R.string.filter_description))
+                                                    .outerCircleAlpha(0.8f)
+                                            TapTargetView.showFor(this, tapTarget, object : TapTargetView.Listener() {
+                                                override fun onTargetClick(view: TapTargetView) {
+                                                    view.dismiss(true)
+                                                    if (fragmentManager.findFragmentByTag(ContextMenuDialogFragment.TAG) == null) {
+                                                        contextMenuDialogFragment?.show(supportFragmentManager, ContextMenuDialogFragment.TAG)
+                                                    }
+                                                }
+                                            })
                                         }
-                                    }
-                                })
+                                        .andThen(Observable.timer(500, TimeUnit.MILLISECONDS).observeOn(AndroidSchedulers.mainThread()))
+                                        .retry(3)
+                                        .subscribeBy(onError = Timber::e)
                             }
                 }
                 .subscribeOn(Schedulers.io())
                 .compose(bindUntilEvent(ActivityEvent.DESTROY))
-                .subscribe()
+                .subscribeBy(onError = Timber::e)
     }
 
     private fun search(keyword: String) {

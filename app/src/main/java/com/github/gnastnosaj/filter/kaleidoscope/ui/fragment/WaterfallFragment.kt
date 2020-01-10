@@ -56,15 +56,15 @@ class WaterfallFragment : Fragment() {
                             layoutManager = staggeredGridLayoutManager
 
                             val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-                                override fun onSingleTapUp(e: MotionEvent?): Boolean {
+                                override fun onSingleTapUp(e: MotionEvent): Boolean {
                                     return true
                                 }
                             })
                             addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
-                                override fun onInterceptTouchEvent(rv: RecyclerView?, e: MotionEvent?): Boolean {
+                                override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
                                     return if (gestureDetector.onTouchEvent(e)) {
-                                        e?.let { event ->
-                                            val childView = findChildViewUnder(event.x, event.y)
+                                        val childView = findChildViewUnder(e.x, e.y)
+                                        childView?.let {
                                             val position = getChildAdapterPosition(childView)
                                             if (-1 < position && position < waterfallAdapter.data.size) {
                                                 val data = waterfallAdapter.data[position]
